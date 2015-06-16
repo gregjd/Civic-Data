@@ -3,47 +3,122 @@ import glob
 import json
 
 
-### Maybe somehow unpack individual races? Would make filtering easier.
 
-def aggregateByLocation(elections, k, f):
-    """
-    """
+def getUncRates(elections_list, group='date'):
 
-    locs = {}
-    for date in elections:
-        if k in elections[date]:
-            for loc in elections[date][k]:
-                if loc not in locs:
-                    locs[loc] = {}
-                # if date not in locs[loc]:
-                #     locs[loc][date] = None
-                locs[loc][date] = f(elections[date][k][loc])
+    all_locs = {} # Keys = unique locations
+    for i in elections_list: # For each race
+        if i['location'] not in all_locs:
+            all_locs[i['location']] = {}
+
+    # if (group):
+    #     dg = 'group' # Use election groups instead of individual dates
+    # else:
+    #     dg = 'date'
+
+    dg = group
+
+    for j in all_locs: # For each location
+        loc_list = filter(lambda x: x['location']==j, elections_list) # Races for that loc
+        loc_dict = {} # Keys = dates, values = races
+        for k in loc_list:
+            if k[dg] not in loc_dict:
+                loc_dict[k[dg]] = []
+            loc_dict[k[dg]].append(k)
+        for date in loc_dict: # For each date or date group
+            unc = float(len(filter(lambda x: x['contested']==False, loc_dict[date])))
+            tot = float(len(loc_dict[date]))
+            all_locs[j][date] = unc/tot
+
+    return all_locs
+
+
+def getType(elections_list, office_type):
+
+    return filter(lambda x: x['office_type']==office_type, elections_list)
+
+
+# def getUncRatesForAll(elections_dict):
+
+#     return aggregateByLocation(elections_dict, 'unc_rates', (lambda x: x['unc_rate']))
+
+
+# def aggregateByLocation(elections_dict, k, f):
+#     """
+#     """
+
+#     locs = {}
+#     for date in elections_dict:
+#         if k in elections_dict[date]:
+#             for loc in elections_dict[date][k]:
+#                 if loc not in locs:
+#                     locs[loc] = {}
+#                 locs[loc][date] = f(elections_dict[date][k][loc])
+#         else:
+#             raise Exception("'k' must be either 'races' or 'unc_rates'.")
+
+#     return locs
+
+
+def combinePrimaryGeneral(elec_type):
+    """Takes an election type (str) and returns whether it's a primary or general (str)."""
+
+    # print elec_type.lower()
+    if 'primary' in elec_type.lower():
+        if 'general' in elec_type.lower():
+            raise Exception("'Primary' and 'General' can't both be in an election type.")
         else:
-            raise Exception("'k' must be either 'races' or 'unc_rates'.")
+            return 'Primary'
+    elif 'general' in elec_type.lower():
+        return 'General'
+    else:
+        print 'Type "'+elec_type+'" unknown.'
+        return 'Unknown'
 
-    return locs
+def combineYear(elec_year):
 
-## Could make it a more generic combine function
-def combineElections(data, types, combine=None):
+    # Could confirm that it's actually a year using regex, but this will work if used properly
+
+    return elec_year[0:4]
+
+
+def addPropFromJSON(file_name):
+    """Uses an extermal JSON file to associate properties with ____.
+
+    Structured this way so that the file only had to be opened once.
+
+    >>> Returns a function
     """
-    Args:
-        data: Dict with data for one or more elections
-        types: Dict where keys = election dates (YYYY-MM-DD), values = attributes
-        combine: (Optional) ______ that gives rules for grouping multiple types
-    
-    Returns:
-        A dict where keys = types, values = the elections included
-    """
 
-    # Will only handle elections that are both in data and types
+    f = open(file_name, 'r')
+    js = json.loads(f.read())
+    f.close()
 
-    # Will need to do more here....
+    def jsonMatch(lookup):
 
-    return
+        try:
+            # match = js[lookup].encode('ascii')
+            return js[lookup].encode('ascii')
+        except KeyError:
+            print lookup, 'not found in JSON file'
+            # match = None
+            return None
 
-def aggregatePrimaryGeneral(___):
+        # return match
 
-    return
+    return jsonMatch
+
+
+def addProp(list_of_dicts, current_prop, new_prop_name, new_prop_f):
+
+    def propMap(x):
+
+        new = { new_prop_name: new_prop_f(x[current_prop]) }
+
+        return dict(x.items() + new.items())
+
+    return map(propMap, list_of_dicts)
+
 
 def prepForCSV(d, key_name):
     """Turns a dict of dicts into a list of dicts ready for saving to CSV.
@@ -91,6 +166,7 @@ def prepForCSV(d, key_name):
 
     return d_list
 
+
 def saveCSV(new_file_name, data, header):
     """Takes a list of dicts and saves the result as a CSV.
 
@@ -134,7 +210,7 @@ def readAllElections(pattern='*.csv', makeCSV=True, makeJSON=False):
         makeCSV: (Optional) If True, saves a CSV with the uncontested rates by 
             location for each election. Election dates are column headers and 
             each location is a row.
-        makeJSON: (Optional) If True, saves a JSON file with the results ('elections'). 
+        makeJSON: (Optional) If True, saves a JSON file with the results ('elections_dict'). 
             File may be huge.
 
     Returns:
@@ -145,60 +221,23 @@ def readAllElections(pattern='*.csv', makeCSV=True, makeJSON=False):
         Saves up to two new files (CSV, JSON).
     """
 
-    elections = {}
-    # all_locations = set()
-    all_locations = {}
+    elections_dict = {}
+    elections_list = []
     for file_name in glob.glob(pattern): # For each CSV in the current folder
-        # date = convertDate(getDateFromName(file_name))
-        races = readCandidatesFile(file_name)
+        (races, races_list) = readCandidatesFile(file_name)
         if (races): # If the CSV didn't get skipped for not having the required fields
-            elections[races['date']] = races
+            elections_dict[races['date']] = races
+            elections_list += races_list
 
-            for place in elections[races['date']]['races']:
-                if place not in all_locations:
-                    # all_locations.add(place)
-                    all_locations[place] = {'location': place}
-
-    if (makeCSV): # Breaking out as a separate function for aggregation!
-        # csv_name = 'unc_rates.csv'
-        # print '\nSaving file:', csv_name, '...'
-        # with open(csv_name, 'wb') as csvfile:
-        #     # field_names = ['date'] + [p for p in sorted(all_locations)]
-        #     # writer = csv.DictWriter(csvfile, field_names)
-        #     # writer.writeheader()
-        #     # for e in sorted(elections):
-        #     #     e_dict = elections[e]['unc_rates']
-        #     #     e_dict['date'] = e
-        #     #     writer.writerow(e_dict)
-
-        #     fields = ['location'] + [e for e in sorted(elections)] # Dates as column headers
-        #     # print fields
-        #     writer = csv.DictWriter(csvfile, fields)
-        #     writer.writeheader()
-        #     for p in sorted(all_locations): # For each location
-        #         p_dict = {} # Dict will be used to write to CSV (keys = CSV header fields)
-        #         p_dict['location'] = p
-        #         for e in elections: # For each election date
-        #             if p in elections[e]['races']:
-        #                 p_dict[e] = elections[e]['unc_rates'][p]['unc_rate']
-        #         writer.writerow(p_dict)
-        # csvfile.close()
-        # print 'Saved file:', csv_name
-
-        header = ['location'] + [e for e in sorted(elections)]
-        data = []
-        for p in sorted(all_locations):
-            for e in elections:
-                if p in elections[e]['unc_rates']:
-                    all_locations[p][e] = elections[e]['unc_rates'][p]['unc_rate']
-            data.append(all_locations[p])
-
+    if (makeCSV):
+        header = ['location'] + [e for e in sorted(elections_dict)]
+        data = prepForCSV(getUncRates(elections_list), 'location')
         saveCSV('unc_rates.csv', data, header)
 
     if (makeJSON):
-        saveJSON('elections.json', elections)
+        saveJSON('elections.json', elections_dict)
 
-    return elections
+    return (elections_dict, elections_list)
 
 def readCandidatesFile(file_name, makeJSON=False):
     """Reads a CSV with candidate data and compiles a dict with the info.
@@ -215,27 +254,30 @@ def readCandidatesFile(file_name, makeJSON=False):
     """
 
     f = open(file_name, 'r')
+    date = convertDate(getDateFromName(file_name))
     try:
-        races = compileCandidates(csv.DictReader(f))
+        # races = compileCandidates(csv.DictReader(f), date)
+        (races, races_list) = compileCandidates(csv.DictReader(f), date)
     except KeyError:
         print ("\n" + file_name + "\ndoes not have all the required fields: " +
             "'TOWN', 'OFFICE', and 'DIST#'." + "\nFile ignored.\n")
-        return None
+        return (None, None)
     else:
         print 'Reading:', file_name
         if (makeJSON):
             new_name = file_name.replace('.csv','.json')
             saveJSON(new_name, races) # in same directory as CSV
-        return {
+        return ({
             'races': races,
-            'date': convertDate(getDateFromName(file_name)),
+            'date': date,
+            # 'date': convertDate(getDateFromName(file_name)),
             'unc_rates': getUncontestedRates(races)
-        }
+        }, races_list)
     finally:
         f.close()
     
 
-def compileCandidates(reader):
+def compileCandidates(reader, date):
     """Compiles a dict of races and candidates based on raw spreadsheet data.
 
     Args:
@@ -276,7 +318,7 @@ def compileCandidates(reader):
             }
         races[loc][o][d]['candidates'][row['DECLARATION']].append(row)
 
-    return calculateContested(races)
+    return calculateContested(races, date)
 
 
 def mapOffice(d):
@@ -343,16 +385,51 @@ def findLocation(d):
     return d['CITY'] # default: assume location is municipality
 
 
-def calculateContested(races):
+def getOfficeType(office):
+
+    if office in ['MAYOR', 'TOWN MODERATOR', 'GOVERNOR', 'PRESIDENT OF THE UNITED STATES']:
+        return 'Executive'
+    elif 'COUNCIL' in office:
+        return 'Legislature'
+    elif 'GENERAL ASSEMBLY' in office:
+        return 'Legislature'
+    elif 'CONGRESS' in office:
+        return 'Legislature'
+    elif 'SCHOOL COMMITTEE' in office:
+        return 'School Committee'
+    else:
+        return None
+
+
+def calculateContested(races, date):
     """For each race, calculates the 'contested' field."""
     # Doesn't account for places where votefor is multiple but not specified
+
+    # FOR NOW: This is where elections_list is created
+    # should actually have a traversal function that calls two other functions:
+    #       calculateContested, addToElectionsSet
+
+    elections_list = []
+
     for loc in races:
         for office in races[loc]:
             for district in races[loc][office]:
+
                 d = races[loc][office][district]
                 d['contested'] = isContested(d)
 
-    return races
+                other_race_info = {
+                    'date': date,
+                    'location': loc,
+                    'office': office,
+                    'office_type': getOfficeType(office),
+                    'district': district
+                }
+
+                race_item = dict(d.items() + other_race_info.items())
+                elections_list.append(race_item)
+
+    return (races, elections_list)
 
 
 def isContested(d):
@@ -419,6 +496,7 @@ def convertDate(text):
 
 ## Do I really need this? Could I just include it in getUncontestedRaces?
 def getWhere(to_filter, property_, boolean):
+
     return sorted(filter(lambda x: (to_filter[x][property_]==boolean), to_filter))
 
 
@@ -451,5 +529,39 @@ def getUncontestedRates(races, printr=False):
 
 if __name__ == '__main__':
 
-    elections = readAllElections()
-    someDict = aggregateByLocation(elections, 'unc_rates', (lambda x: x['unc_rate']))
+    (elections_dict, elections_list) = readAllElections()
+
+    # for t in ['Executive', 'Legislature', 'School Committee']:
+    #     header = ['location'] + [e for e in sorted(elections_dict)]
+    #     data = prepForCSV(getUncRates(getType(elections_list, t)), 'location')
+    #     saveCSV('unc_rates_'+t[0:3].lower()+'.csv', data, header)
+    
+    # header = ['location', '2006', '2008', '2010', '2012', '2014']
+    # res = addProp(elections_list, 'date', 'year', combineYear)
+    # data = prepForCSV(getUncRates(res, 'year'), 'location')
+    # saveCSV('unc_rates_by_year.csv', data, header)
+
+    # header = ['location', 'Primary', 'General']
+    # temp = addProp(elections_list, 'date', 'type_long', addPropFromJSON('list_of_elections.json'))
+    # res = addProp(temp, 'type_long', 'type_short', combinePrimaryGeneral)
+    # data = prepForCSV(getUncRates(res, 'type_short'), 'location')
+    # saveCSV('unc_rates_by_elec_type.csv', data, header)
+
+
+    def mapRace(race):
+
+        # lambda x: (x, race[x]) if (x != 'candidates') else (len(race[x]['Valid']))
+        def mapRaceFunc(x):
+
+            if (x != 'candidates'):
+                return (x, race[x])
+            else:
+                return (x, len(race[x]['Valid']))
+
+        return dict(map(mapRaceFunc, race))
+
+    data = map(mapRace, elections_list)
+    header = ['date', 'location', 'office', 'office_type', 'district', 'nonpartisan',
+        'candidates', 'votefor', 'contested']
+    # header = [contested, office, district, office_type, candidates, date, nonpartisan, votefor]
+    saveCSV('all_races.csv', data, header)
