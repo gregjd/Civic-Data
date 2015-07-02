@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>RI Youth Registration Rate</title>
+        <script type="text/javascript" src="d3.js"></script>
+        <style type="text/css">
+            /* Style rules */       
+        </style>
+    </head>
+    <body>
+        <script type="text/javascript">
+
+            // var w = 1500;
+            // var h = 900;
+            // var w = 960;
+            // var h = 500;
+            var w = 960;
+            var h = 900;
+
+            var projection = d3.geo.mercator()
+                                    .center([-71.4121134, 41.8148182]) // centered on Providence
+                                    // .center([-71.5064508, 41.5827282,]) // centered on RI
+                                    .scale(40000);
+
+            var path = d3.geo.path()
+                                .projection(projection);
+                             
+
+            var color = d3.scale.quantile()
+            // var color = d3.scale.quantize()
+                                // .domain([0,120000])
+                                // .domain([0,18000])
+                                // .range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
+                                .range(["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"]);
+                                // ColorBrewer colors
+
+            var svg = d3.select("body")
+                        .append("svg")
+                        .attr("width", w)
+                        .attr("height", h);
+
+            // Load in muni data
+
+            var munis = {};
+
+            d3.csv("2013_5yr_pop_estimates.csv", function (pop_data) {
+
+                for (var g = 0; g < pop_data.length; g++) {
+
+                    var loc = pop_data[g]["Municipality3"];
+
+                    if (!(loc in munis)) {
+                        munis[loc] = {}
+                    }
+
+                    munis[loc].pop_18_plus = parseFloat(pop_data[g]['Total 18+']);
+                    munis[loc].pop_18_24 = parseFloat(pop_data[g]['Total 18-24']);
+                }
+            });
+
+            d3.csv("Registered_voter_totals_Nov2014a.csv", function (voter_data) {
+
+                for (var h = 0; h < voter_data.length; h++) {
+
+                    var loc = voter_data[h]["Muni"];
+                    
+                    munis[loc].voter_18_plus = parseFloat(voter_data[h]['Grand Total']);
+                    munis[loc].voter_18_24 = parseFloat(voter_data[h]['18-24']);
+                }
+
+                // color.domain([
+                //     d3.min(d3.entries(munis), function (d) { return d.value.voter_18_24; }),
+                //     d3.max(d3.entries(munis), function (d) { return d.value.voter_18_24; })
+                // ]);
+
+                var color_map = d3.map(d3.entries(munis), function (d) { return d.value.voter_18_24; });
+                color.domain(color_map.keys());
+
+                // color.domain(d3.map(d3.entries(munis), function (d) { return d.value.voter_18_24; }).keys());
+
+                // console.log(color.domain());
+                // console.log(color.range());
+            });
+
+            
+            d3.json('ri_muni.geojson', function (geo_data) {
+
+                // for (var i = 0; i < pop_data.length; i++) {
+
+                //     var pop_muni = pop_data[i]['Municipality 3'];
+                //     var pop_18_plus = parseFloat(pop_data[i]['Total 18+']);
+                //     var pop_18_24 = parseFloat(pop_data[i]['Total 18-24']);
+
+                //     for (var j = 0; j < voter_data.length; j++) {
+
+                //         var voter_muni = voter_data[j]['Muni'];
+                //         var voter_18_plus = parseFloat(voter_data[j]['Grand Total']);
+                //         var voter_18_24 = parseFloat(voter_data[j]['18-24']);
+
+                //         for (var k = 0; k < geo_data.features.length; k++) {
+
+                //             var geo_muni = geo_data.features[k].properties.MUNI_CAPS;
+
+                //             if (geo_muni === pop_muni) {
+                //                 geo_data.features[k].properties.pop_18_plus = pop_18_plus;
+                //                 geo_data.features[k].properties.pop_18_24 = pop_18_24;
+                //                 break;
+                //             }
+
+                //             if (geo_muni === voter_muni) {
+                //                 geo_data.features[k].properties.voter_18_plus = voter_18_plus;
+                //                 geo_data.features[k].properties.voter_18_24 = voter_18_24;
+                //                 break;
+                //             }
+
+                //                     // console.log(geo_muni, geo_data.features[k].properties.voter_18_24);
+                //         }
+                //     }
+                // }
+
+                for (var i = 0; i < geo_data.features.length; i++) {
+
+                    var muni_name = geo_data.features[i].properties.MUNI_CAPS;
+
+                    for (p in munis[muni_name]) {
+                        geo_data.features[i].properties[p] = munis[muni_name][p];
+                    }
+                }
+                        
+
+                svg.selectAll('path')
+                    .data(geo_data.features, function (d) { return d.properties.MUNI_CAPS; })
+                    .enter()
+                    .append('path')
+                    .attr('d', path)
+                    // .style('fill', '#ccc')
+                    .style('fill', function (d) {
+                        var value = d.properties.voter_18_24;
+                        console.log(d.properties.MUNI_CAPS, value);
+                        console.log(color(value));
+                        return color(value);
+                    })
+                    // .style('fill', function (d) {
+                    //     var value = d.properties.voter_18_24;
+                    //     return (value > 2000) ? 'black' : '#ccc';
+                    // })
+                    .style('stroke', 'white')
+                    .style('stroke-width', 2);
+            });
+
+
+            //Load in muni data
+            /*d3.csv('2013_5yr_pop_estimates.csv', function (pop_data) {
+                
+                d3.csv('Registered_voter_totals_Nov2014a.csv', function (voter_data) {
+
+                    color.domain([
+                        d3.min(voter_data, function (d) { return parseFloat(d['18-24']); }),
+                        d3.max(voter_data, function (d) { return parseFloat(d['18-24']); })
+                        // 18000
+                    ]);
+                    console.log('Domain', color.domain());
+                    
+                    d3.json('ri_muni.geojson', function (geo_data) {
+                        
+                        for (var i = 0; i < pop_data.length; i++) {
+                            
+                            var pop_muni = pop_data[i]['Municipality 3'];
+                            var pop_18_plus = parseFloat(pop_data[i]['Total 18+']);
+                            var pop_18_24 = parseFloat(pop_data[i]['Total 18-24']);
+
+                            for (var j = 0; j < voter_data.length; j++) {
+                                
+                                var voter_muni = voter_data[j]['Muni'];
+                                var voter_18_plus = parseFloat(voter_data[j]['Grand Total']);
+                                var voter_18_24 = parseFloat(voter_data[j]['18-24']);
+
+                                for (var k = 0; k < geo_data.features.length; k++) {
+                                    
+                                    var geo_muni = geo_data.features[k].properties.MUNI_CAPS;
+
+                                    if (geo_muni === pop_muni) {
+                                        geo_data.features[k].properties.pop_18_plus = pop_18_plus;
+                                        geo_data.features[k].properties.pop_18_24 = pop_18_24;
+                                        break;
+                                    }
+
+                                    if (geo_muni === voter_muni) {
+                                        geo_data.features[k].properties.voter_18_plus = voter_18_plus;
+                                        geo_data.features[k].properties.voter_18_24 = voter_18_24;
+                                        break;
+                                    }
+
+                                    // console.log(geo_muni, geo_data.features[k].properties.voter_18_24);
+                                }
+                            }
+                        }
+
+                        // color.domain();
+                        
+
+                        svg.selectAll('path')
+                            .data(geo_data.features, function (d) { return d.properties.MUNI_CAPS; })
+                            .enter()
+                            .append('path')
+                            .attr('d', path)
+                            // .style('fill', '#ccc')
+                            .style('fill', function (d) {
+                                var value = d.properties.voter_18_24;
+                                console.log(d.properties.MUNI_CAPS, value);
+                                return color(value);
+                            })
+                            // .style('fill', function (d) {
+                            //     var value = d.properties.voter_18_24;
+                            //     return (value > 2000) ? 'black' : '#ccc';
+                            // })
+                            .style('stroke', 'white')
+                            .style('stroke-width', 2);
+
+                        // d3.json('world_countries.geojson', function (wc) {
+                        //     svg.selectAll('path')
+                        //         .data(wc.features, function (d) { return d.properties.name; })
+                        //         .enter()
+                        //         .append('path')
+                        //         .attr('d', path)
+                        //         .style('fill', 'yellow')
+                        //         .style('opacity', 0.25);
+                        // });
+                    });
+                });
+            });*/
+
+            
+        </script>
+    </body>
+</html>
