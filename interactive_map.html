@@ -54,8 +54,8 @@
                         munis[loc] = {}
                     }
 
-                    munis[loc].pop_18_plus = parseFloat(pop_data[g]['Total 18+']);
-                    munis[loc].pop_18_24 = parseFloat(pop_data[g]['Total 18-24']);
+                    munis[loc].pop_18_plus = parseFloat(pop_data[g]["Total 18+"]);
+                    munis[loc].pop_18_24 = parseFloat(pop_data[g]["Total 18-24"]);
                 }
             });
 
@@ -65,8 +65,8 @@
 
                     var loc = voter_data[h]["Muni"];
                     
-                    munis[loc].voter_18_plus = parseFloat(voter_data[h]['Grand Total']);
-                    munis[loc].voter_18_24 = parseFloat(voter_data[h]['18-24']);
+                    munis[loc].voter_18_plus = parseFloat(voter_data[h]["Grand Total"]);
+                    munis[loc].voter_18_24 = parseFloat(voter_data[h]["18-24"]);
                 }
 
                 // color.domain([
@@ -74,8 +74,11 @@
                 //     d3.max(d3.entries(munis), function (d) { return d.value.voter_18_24; })
                 // ]);
 
-                var color_map = d3.map(d3.entries(munis), function (d) { return d.value.voter_18_24; });
-                color.domain(color_map.keys());
+                var muni_list = d3.entries(munis);
+                var getAges = function (d) { return d.value.voter_18_24; };
+                color.domain(d3.map(muni_list, getAges).keys());
+                // var color_map = d3.map(d3.entries(munis), function (d) { return d.value.voter_18_24; });
+                // color.domain(color_map.keys());
 
                 // color.domain(d3.map(d3.entries(munis), function (d) { return d.value.voter_18_24; }).keys());
 
@@ -84,7 +87,7 @@
             });
 
             
-            d3.json('ri_muni.geojson', function (geo_data) {
+            d3.json("ri_muni.geojson", function (geo_data) {
 
                 // for (var i = 0; i < pop_data.length; i++) {
 
@@ -129,24 +132,24 @@
                 }
                         
 
-                svg.selectAll('path')
+                svg.selectAll("path")
                     .data(geo_data.features, function (d) { return d.properties.MUNI_CAPS; })
                     .enter()
-                    .append('path')
-                    .attr('d', path)
+                    .append("path")
+                    .attr("d", path)
                     // .style('fill', '#ccc')
-                    .style('fill', function (d) {
+                    .style("fill", function (d) {
                         var value = d.properties.voter_18_24;
-                        console.log(d.properties.MUNI_CAPS, value);
-                        console.log(color(value));
+                        // console.log(d.properties.MUNI_CAPS, value);
+                        // console.log(color(value));
                         return color(value);
                     })
                     // .style('fill', function (d) {
                     //     var value = d.properties.voter_18_24;
                     //     return (value > 2000) ? 'black' : '#ccc';
                     // })
-                    .style('stroke', 'white')
-                    .style('stroke-width', 2);
+                    .style("stroke", "white")
+                    .style("stroke-width", 2);
             });
 
 
