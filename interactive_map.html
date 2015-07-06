@@ -69,58 +69,13 @@
                     munis[loc].voter_18_24 = parseFloat(voter_data[h]["18-24"]);
                 }
 
-                // color.domain([
-                //     d3.min(d3.entries(munis), function (d) { return d.value.voter_18_24; }),
-                //     d3.max(d3.entries(munis), function (d) { return d.value.voter_18_24; })
-                // ]);
-
                 var muni_list = d3.entries(munis);
                 var getAges = function (d) { return d.value.voter_18_24; };
                 color.domain(d3.map(muni_list, getAges).keys());
-                // var color_map = d3.map(d3.entries(munis), function (d) { return d.value.voter_18_24; });
-                // color.domain(color_map.keys());
-
-                // color.domain(d3.map(d3.entries(munis), function (d) { return d.value.voter_18_24; }).keys());
-
-                // console.log(color.domain());
-                // console.log(color.range());
             });
 
             
             d3.json("ri_muni.geojson", function (geo_data) {
-
-                // for (var i = 0; i < pop_data.length; i++) {
-
-                //     var pop_muni = pop_data[i]['Municipality 3'];
-                //     var pop_18_plus = parseFloat(pop_data[i]['Total 18+']);
-                //     var pop_18_24 = parseFloat(pop_data[i]['Total 18-24']);
-
-                //     for (var j = 0; j < voter_data.length; j++) {
-
-                //         var voter_muni = voter_data[j]['Muni'];
-                //         var voter_18_plus = parseFloat(voter_data[j]['Grand Total']);
-                //         var voter_18_24 = parseFloat(voter_data[j]['18-24']);
-
-                //         for (var k = 0; k < geo_data.features.length; k++) {
-
-                //             var geo_muni = geo_data.features[k].properties.MUNI_CAPS;
-
-                //             if (geo_muni === pop_muni) {
-                //                 geo_data.features[k].properties.pop_18_plus = pop_18_plus;
-                //                 geo_data.features[k].properties.pop_18_24 = pop_18_24;
-                //                 break;
-                //             }
-
-                //             if (geo_muni === voter_muni) {
-                //                 geo_data.features[k].properties.voter_18_plus = voter_18_plus;
-                //                 geo_data.features[k].properties.voter_18_24 = voter_18_24;
-                //                 break;
-                //             }
-
-                //                     // console.log(geo_muni, geo_data.features[k].properties.voter_18_24);
-                //         }
-                //     }
-                // }
 
                 for (var i = 0; i < geo_data.features.length; i++) {
 
@@ -140,8 +95,6 @@
                     // .style('fill', '#ccc')
                     .style("fill", function (d) {
                         var value = d.properties.voter_18_24;
-                        // console.log(d.properties.MUNI_CAPS, value);
-                        // console.log(color(value));
                         return color(value);
                     })
                     // .style('fill', function (d) {
@@ -151,89 +104,6 @@
                     .style("stroke", "white")
                     .style("stroke-width", 2);
             });
-
-
-            //Load in muni data
-            /*d3.csv('2013_5yr_pop_estimates.csv', function (pop_data) {
-                
-                d3.csv('Registered_voter_totals_Nov2014a.csv', function (voter_data) {
-
-                    color.domain([
-                        d3.min(voter_data, function (d) { return parseFloat(d['18-24']); }),
-                        d3.max(voter_data, function (d) { return parseFloat(d['18-24']); })
-                        // 18000
-                    ]);
-                    console.log('Domain', color.domain());
-                    
-                    d3.json('ri_muni.geojson', function (geo_data) {
-                        
-                        for (var i = 0; i < pop_data.length; i++) {
-                            
-                            var pop_muni = pop_data[i]['Municipality 3'];
-                            var pop_18_plus = parseFloat(pop_data[i]['Total 18+']);
-                            var pop_18_24 = parseFloat(pop_data[i]['Total 18-24']);
-
-                            for (var j = 0; j < voter_data.length; j++) {
-                                
-                                var voter_muni = voter_data[j]['Muni'];
-                                var voter_18_plus = parseFloat(voter_data[j]['Grand Total']);
-                                var voter_18_24 = parseFloat(voter_data[j]['18-24']);
-
-                                for (var k = 0; k < geo_data.features.length; k++) {
-                                    
-                                    var geo_muni = geo_data.features[k].properties.MUNI_CAPS;
-
-                                    if (geo_muni === pop_muni) {
-                                        geo_data.features[k].properties.pop_18_plus = pop_18_plus;
-                                        geo_data.features[k].properties.pop_18_24 = pop_18_24;
-                                        break;
-                                    }
-
-                                    if (geo_muni === voter_muni) {
-                                        geo_data.features[k].properties.voter_18_plus = voter_18_plus;
-                                        geo_data.features[k].properties.voter_18_24 = voter_18_24;
-                                        break;
-                                    }
-
-                                    // console.log(geo_muni, geo_data.features[k].properties.voter_18_24);
-                                }
-                            }
-                        }
-
-                        // color.domain();
-                        
-
-                        svg.selectAll('path')
-                            .data(geo_data.features, function (d) { return d.properties.MUNI_CAPS; })
-                            .enter()
-                            .append('path')
-                            .attr('d', path)
-                            // .style('fill', '#ccc')
-                            .style('fill', function (d) {
-                                var value = d.properties.voter_18_24;
-                                console.log(d.properties.MUNI_CAPS, value);
-                                return color(value);
-                            })
-                            // .style('fill', function (d) {
-                            //     var value = d.properties.voter_18_24;
-                            //     return (value > 2000) ? 'black' : '#ccc';
-                            // })
-                            .style('stroke', 'white')
-                            .style('stroke-width', 2);
-
-                        // d3.json('world_countries.geojson', function (wc) {
-                        //     svg.selectAll('path')
-                        //         .data(wc.features, function (d) { return d.properties.name; })
-                        //         .enter()
-                        //         .append('path')
-                        //         .attr('d', path)
-                        //         .style('fill', 'yellow')
-                        //         .style('opacity', 0.25);
-                        // });
-                    });
-                });
-            });*/
-
             
         </script>
     </body>
