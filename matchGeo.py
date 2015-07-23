@@ -15,7 +15,7 @@ def matchGeo(match_table, voter_table):
         voter_table but with '_geocoded' appended before the '.csv' (or '.txt') extension.
     """
 
-    vts = voter_table.split('.')
+    vts = voter_table.rsplit('.', 1)
     vts.insert(1, '_geocoded.')
     new_file_name = ''.join(vts)
 
