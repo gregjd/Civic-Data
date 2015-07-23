@@ -110,12 +110,25 @@ def addPropFromJSON(file_name):
 
 
 def addProp(list_of_dicts, current_prop, new_prop_name, new_prop_f):
+    """Takes a list of dicts and adds a new key-value pair to each one 
+    based on an existing value.
+
+    Args:
+        list_of_dicts: List of dicts; each dict will have a k-v pair added
+        current_prop: String key in the dicts
+        new_prop_name: String key to be added to the dicts
+        new_prop_f: Function that takes the value for current_prop and returns 
+            the value for new_prop_name
+
+    Returns:
+        A list of dicts, each with the new property added as a k-v pair.
+    """
 
     def propMap(x):
 
-        new = { new_prop_name: new_prop_f(x[current_prop]) }
+        new = { new_prop_name: new_prop_f(x[current_prop]) } # Creates the new k-v pair
 
-        return dict(x.items() + new.items())
+        return dict(x.items() + new.items()) # Adds the new k-v pair to the dict
 
     return map(propMap, list_of_dicts)
 
@@ -142,7 +155,8 @@ def prepForCSV(d, key_name):
                     'location': 'CRANSTON',
                     '2014-09-09': 0.24,
                     '2014-11-04': 0.29
-                }, {
+                },
+                {
                     'location': 'PROVIDENCE',
                     '2014-09-09': 0.22,
                     '2014-11-04': 0.56
@@ -156,7 +170,8 @@ def prepForCSV(d, key_name):
             the keys in d.
 
     Returns: A list of dicts, with each dict intended to be a row in the CSV.
-        See example above for its structure.
+        See example above for its structure. Dicts are sorted alphabetically 
+        by the keys to which they used to correspond (i.e. 'PROVIDENCE').
     """
 
     d_list = []
@@ -238,6 +253,7 @@ def readAllElections(pattern='*.csv', makeCSV=True, makeJSON=False):
         saveJSON('elections.json', elections_dict)
 
     return (elections_dict, elections_list)
+
 
 def readCandidatesFile(file_name, makeJSON=False):
     """Reads a CSV with candidate data and compiles a dict with the info.
