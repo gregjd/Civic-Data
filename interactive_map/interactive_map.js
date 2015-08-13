@@ -29,37 +29,37 @@ var svg = d3.select("body")
 
 // Load in muni data
 
-var munis = {};
+// var munis = {};
 
 
+// function readData(filename) {
 
-function readCSV(csv_name, object, item_name) {
+//     d3.json(filename, function (dataset) {
 
-    d3.csv(csv_name, function (d) {
-        for (var j = 0; j < d.length; j++) {
+//     });
+// }
 
-            var item = d[j][item_name];
-            if (!(item in object)) {
-                object[item] = {};
-            }
 
-            for (var k=0; k <)
-        }
-    });
-    return
-}
+// readData("pop_and_reg_voters.json", munis);
+
+var filename = "pop_and_reg_voters.json";
+
+d3.json(filename, function (dataset) {
+
+});
 
 
 // Takes old_prop from old_object (your input data) and assigns that value as a new_prop of new_object
 // old_object and new_object are Objects
 // old_prop and new_prop are Strings; the actual data (old_object.old_prop) should be a number
-function giveNumProp(old_object, old_prop, new_object, new_prop) {
+
+// function giveNumProp(old_object, old_prop, new_object, new_prop) {
     
-    new_object[new_prop] = parseFloat(old_object[old_prop]);
-}
+//     new_object[new_prop] = parseFloat(old_object[old_prop]);
+// }
 
 
-d3.csv("2013_5yr_pop_estimates.csv", function (pop_data) {
+/*d3.csv("2013_5yr_pop_estimates.csv", function (pop_data) {
 
     for (var g = 0; g < pop_data.length; g++) {
 
@@ -125,4 +125,4 @@ d3.json("ri_muni.geojson", function (geo_data) {
         // })
         .style("stroke", "white")
         .style("stroke-width", 2);
-});
+});*/
