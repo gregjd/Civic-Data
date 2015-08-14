@@ -22,22 +22,22 @@ var color = d3.scale.quantile()
                     .range(["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"]);
                     // ColorBrewer colors
 
-// console.log(svg);
-
 var tip = d3.tip()
             .attr("class", "d3-tip")
             .offset([-10, 0])
             .html(function (d) {
-                var num = d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"];
-                return "<strong>Percent of youth registered:</strong> <span style='color:red'>" + num + "</span>";
+                var num = (d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"])*100;
+                var num_color = ((num > 100) ? "red" : "green");
+                var city = d.properties.MUNI;
+                return city + "<br>Percent of youth registered: <span style='color:" + num_color + "'>" + num.toFixed(2) + "%</span>";
+                // return "Percent of youth registered: <span style='color:red'>" + num.toFixed(2) + "%</span>";
+                // return "<strong>Percent of youth registered:</strong> <span style='color:red'>" + num.toFixed(2) + "%</span>";
             });
 
 var svg = d3.select("body")
             .append("svg")
             .attr("width", w)
             .attr("height", h);
-
-// console.log(svg);
 
 // Load in muni data
 
@@ -61,7 +61,6 @@ d3.json(filename, function (dataset) {
     var getYouth = function (d) { 
         return (d.value["Reg 18-24"] / d.value["Pop Total 18-24"]); };
     color.domain(d3.map(muni_list, getYouth).keys());
-    //console.log(color.domain());
 
     d3.json("ri_muni.geojson", function (geo_data) {
 
@@ -75,11 +74,6 @@ d3.json(filename, function (dataset) {
             }
             // console.log(geo_data.features[i]);
         }
-
-        // console.log("mid");
-
-        // console.log(svg);
-        // console.log(geo_data.features);
 
         // svg.append("g").selectAll("path").data(geo_data.features).enter().append("path").attr("d", path).style("fill", "#ccc");
                 
@@ -101,23 +95,19 @@ d3.json(filename, function (dataset) {
             // })
             .style("stroke", "white")
             .style("stroke-width", 2)
-            .style("opacity", 0.8)
-            .on("mouseover", tip.show)
-            .on("mouseout", tip.hide);
-            // .on("mouseover", function (d) {
-            //     tip.show;
-            //     d3.select(this).style("opacity", 1);
-            // })
-            // .on("mouseout", function (d) {
-            //     tip.hide;
-            //     d3.select(this).style("opacity", 0.8);
-            // });
-
-        // console.log(svg);
-        // console.log(svg.data());
-
-        // console.log("end");
-
+            .style("opacity", 1)
+            // .on("mouseover", tip.show)
+            // .on("mouseout", tip.hide);
+            .on("mouseover", function (d) {
+                tip.show(d);
+                d3.select(this.parentNode.appendChild(this))
+                    .style("stroke", "black");
+            })
+            .on("mouseout", function (d) {
+                tip.hide(d);
+                d3.select(this)
+                    .style("stroke", "white");
+            });
     });
 });
 
