@@ -4,9 +4,25 @@
         <meta charset="utf-8">
         <title>RI Youth Registration Rate</title>
         <script type="text/javascript" src="d3.js"></script>
+        <script type="text/javascript" src="d3-tip.js"></script>
         <style type="text/css">
-            /* Style rules */       
-        </style>
+            /* Style rules */  
+
+            .d3-tip {
+                line-height: 1;
+                font-weight: normal;
+                padding: 12px;
+                background: rgba(0, 0, 0, 0.8);
+                color: #fff;
+                border-radius: 2px;
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            }
+
+            .muni:hover {
+                stroke: black;
+            }
+
+      </style>
     </head>
     <body>
         <script type="text/javascript" src="interactive_map.js"></script>

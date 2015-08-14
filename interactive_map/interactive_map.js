@@ -22,30 +22,103 @@ var color = d3.scale.quantile()
                     .range(["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"]);
                     // ColorBrewer colors
 
+// console.log(svg);
+
+var tip = d3.tip()
+            .attr("class", "d3-tip")
+            .offset([-10, 0])
+            .html(function (d) {
+                var num = d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"];
+                return "<strong>Percent of youth registered:</strong> <span style='color:red'>" + num + "</span>";
+            });
+
 var svg = d3.select("body")
             .append("svg")
             .attr("width", w)
             .attr("height", h);
 
+// console.log(svg);
+
 // Load in muni data
 
 // var munis = {};
 
-
 // function readData(filename) {
-
 //     d3.json(filename, function (dataset) {
-
 //     });
 // }
 
 
 // readData("pop_and_reg_voters.json", munis);
 
+svg.call(tip);
+
 var filename = "pop_and_reg_voters.json";
 
 d3.json(filename, function (dataset) {
 
+    var muni_list = d3.entries(dataset);
+    var getYouth = function (d) { 
+        return (d.value["Reg 18-24"] / d.value["Pop Total 18-24"]); };
+    color.domain(d3.map(muni_list, getYouth).keys());
+    //console.log(color.domain());
+
+    d3.json("ri_muni.geojson", function (geo_data) {
+
+        for (var i = 0; i < geo_data.features.length; i++) {
+
+            var muni_name = geo_data.features[i].properties.MUNI_CAPS;
+            // console.log(muni_name);
+
+            for (p in dataset[muni_name]) {
+                geo_data.features[i].properties[p] = dataset[muni_name][p];
+            }
+            // console.log(geo_data.features[i]);
+        }
+
+        // console.log("mid");
+
+        // console.log(svg);
+        // console.log(geo_data.features);
+
+        // svg.append("g").selectAll("path").data(geo_data.features).enter().append("path").attr("d", path).style("fill", "#ccc");
+                
+        svg.selectAll("path")
+            .data(geo_data.features, function (d) { return d.properties.MUNI_CAPS; })
+            .enter()
+            .append("path")
+            .attr("d", path)
+            .attr("class", "muni")
+            // .style('fill', '#ccc')
+            .style("fill", function (d) {
+                // var value = (d.properties.voter_18_24);
+                var val = (d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"]);
+                return color(val);
+            })
+            // .style('fill', function (d) {
+            //     var value = d.properties.voter_18_24;
+            //     return (value > 2000) ? 'black' : '#ccc';
+            // })
+            .style("stroke", "white")
+            .style("stroke-width", 2)
+            .style("opacity", 0.8)
+            .on("mouseover", tip.show)
+            .on("mouseout", tip.hide);
+            // .on("mouseover", function (d) {
+            //     tip.show;
+            //     d3.select(this).style("opacity", 1);
+            // })
+            // .on("mouseout", function (d) {
+            //     tip.hide;
+            //     d3.select(this).style("opacity", 0.8);
+            // });
+
+        // console.log(svg);
+        // console.log(svg.data());
+
+        // console.log("end");
+
+    });
 });
 
 
