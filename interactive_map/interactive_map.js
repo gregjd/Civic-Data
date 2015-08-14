@@ -14,12 +14,15 @@ var path = d3.geo.path()
                     .projection(projection);
                  
 // Define color scale
-var color = d3.scale.quantile()
+var color = d3.scale.threshold()
+                    .domain([0.6, 0.8, 1])
+                    .range(["#3366CC", "#0099CC", "#33CCCC", "#FF6600"]);
+// var color = d3.scale.quantile()
 // var color = d3.scale.quantize()
                     // .domain([0,120000])
                     // .domain([0,18000])
                     // .range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
-                    .range(["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"]);
+                    // .range(["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"]);
                     // ColorBrewer colors
 
 // Define what goes in the box that appears when you hover over a municipality
@@ -46,10 +49,11 @@ svg.call(tip);
 d3.json(filename, function (dataset) {
 
     // Define domain for color scale
-    var muni_list = d3.entries(dataset);
+    // Don't need this if using a threshold scale
+/*    var muni_list = d3.entries(dataset);
     var getYouth = function (d) { 
         return (d.value["Reg 18-24"] / d.value["Pop Total 18-24"]); };
-    color.domain(d3.map(muni_list, getYouth).keys());
+    color.domain(d3.map(muni_list, getYouth).keys());*/
 
     // Open the file with municipality shapes
     d3.json("ri_muni.geojson", function (geo_data) {
@@ -77,8 +81,6 @@ d3.json(filename, function (dataset) {
             .style("stroke", "white")
             .style("stroke-width", 2)
             .style("opacity", 1)
-            // .on("mouseover", tip.show)
-            // .on("mouseout", tip.hide);
             .on("mouseover", function (d) {
                 tip.show(d);
                 d3.select(this.parentNode.appendChild(this))
