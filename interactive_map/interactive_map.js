@@ -25,6 +25,27 @@ var color = d3.scale.threshold()
                     // .range(["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"]);
                     // ColorBrewer colors
 
+function toPct(value, decimal_places) {
+
+    if (isNaN(value) || isNaN(decimal_places)) {
+        throw "Parameters for toPct() must be numbers.";
+    } else {
+        return (value*100).toFixed(decimal_places) + "%";
+    }   
+}
+
+function getIntervals(array) {
+
+    var new_array = [];
+    new_array.push("Less than " + array[0]);
+    for (var n = 1; n < array.length; n++) {
+        new_array.push(array[n-1] + " - " + array[n]);
+    }
+    new_array.push("Over " + array.slice(-1));
+
+    return new_array;
+}
+
 // Define what goes in the box that appears when you hover over a municipality
 var tip = d3.tip()
             .attr("class", "d3-tip")
@@ -91,5 +112,23 @@ d3.json(filename, function (dataset) {
                 d3.select(this)
                     .style("stroke", "white");
             });
+        
+        // Create box for drop-down menu and legend
+        var box = svg.append("div");
+        // var box = svg.append("foreignObject").append("div");
+
+        // Create drop-down menu
+        var menu = box.append("select")
+        menu.append("option")
+            .attr("value", "v1")
+            .text("Value 1, Value 1");
+        menu.append("option")
+            .attr("value", "v2")
+            .text("Value 2, Value 2");
+
+        // Create legend
+        var legend = box.append("div")
+        var items = d3.map()
+        legend.
     });
 });
