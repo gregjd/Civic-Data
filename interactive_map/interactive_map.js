@@ -25,6 +25,7 @@ var color = d3.scale.threshold()
                     // .range(["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"]);
                     // ColorBrewer colors
 
+// Converts a number to a percent, with a certain number of decimal places
 function toPct(value, decimal_places) {
 
     if (isNaN(value) || isNaN(decimal_places)) {
@@ -34,6 +35,8 @@ function toPct(value, decimal_places) {
     }   
 }
 
+// Takes an array and produces an array with intervals between the values in the original array
+// (Intended to produce legend text using color.domain())
 function getIntervals(array) {
 
     var new_array = [];
@@ -45,6 +48,8 @@ function getIntervals(array) {
 
     return new_array;
 }
+
+// var legend_items = map(color.domain(), toPct);
 
 // Define what goes in the box that appears when you hover over a municipality
 var tip = d3.tip()
@@ -118,6 +123,7 @@ d3.json(filename, function (dataset) {
         // var box = svg.append("foreignObject").append("div");
 
         // Create drop-down menu
+        // NOTE: These are currently sample items
         var menu = box.append("select")
         menu.append("option")
             .attr("value", "v1")
@@ -127,8 +133,7 @@ d3.json(filename, function (dataset) {
             .text("Value 2, Value 2");
 
         // Create legend
-        var legend = box.append("div")
-        var items = d3.map()
-        legend.
+        var legend = box.append("div");
+        // TODO: add legend items
     });
 });
