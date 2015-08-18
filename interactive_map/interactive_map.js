@@ -17,13 +17,6 @@ var path = d3.geo.path()
 var color = d3.scale.threshold()
                     .domain([0.6, 0.8, 1])
                     .range(["#3366CC", "#0099CC", "#33CCCC", "#FF6600"]);
-// var color = d3.scale.quantile()
-// var color = d3.scale.quantize()
-                    // .domain([0,120000])
-                    // .domain([0,18000])
-                    // .range(["rgb(237,248,233)","rgb(186,228,179)","rgb(116,196,118)","rgb(49,163,84)","rgb(0,109,44)"]);
-                    // .range(["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"]);
-                    // ColorBrewer colors
 
 // Converts a number to a percent, with a certain number of decimal places
 function toPct(value, decimal_places) {
@@ -56,13 +49,10 @@ var tip = d3.tip()
             .attr("class", "d3-tip")
             .offset([-10, 0])
             .html(function (d) {
-                // var num = (d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"])*100;
                 var calc = d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"];
                 var num = toPct(calc, 2);
                 var num_color = ((calc > 1) ? "red" : "green");
                 var city = d.properties.MUNI;
-                // return "<strong>" + city + "</strong><br>Percent of youth registered: <span style='color:" 
-                //     + num_color + "'>" + num.toFixed(2) + "%</span>";
                 return "<strong>" + city + "</strong><br>Percent of youth registered: <span style='color:" 
                     + num_color + "'>" + num + "</span>";
             });
@@ -77,13 +67,6 @@ svg.call(tip);
 
 // Read in the data and draw the map
 d3.json(filename, function (dataset) {
-
-    // Define domain for color scale
-    // Don't need this if using a threshold scale
-/*    var muni_list = d3.entries(dataset);
-    var getYouth = function (d) { 
-        return (d.value["Reg 18-24"] / d.value["Pop Total 18-24"]); };
-    color.domain(d3.map(muni_list, getYouth).keys());*/
 
     // Open the file with municipality shapes
     d3.json("ri_muni.geojson", function (geo_data) {
