@@ -56,11 +56,15 @@ var tip = d3.tip()
             .attr("class", "d3-tip")
             .offset([-10, 0])
             .html(function (d) {
-                var num = (d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"])*100;
-                var num_color = ((num > 100) ? "red" : "green");
+                // var num = (d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"])*100;
+                var calc = d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"];
+                var num = toPct(calc, 2);
+                var num_color = ((calc > 1) ? "red" : "green");
                 var city = d.properties.MUNI;
+                // return "<strong>" + city + "</strong><br>Percent of youth registered: <span style='color:" 
+                //     + num_color + "'>" + num.toFixed(2) + "%</span>";
                 return "<strong>" + city + "</strong><br>Percent of youth registered: <span style='color:" 
-                    + num_color + "'>" + num.toFixed(2) + "%</span>";
+                    + num_color + "'>" + num + "</span>";
             });
 
 // Create SVG
