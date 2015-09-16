@@ -3,18 +3,12 @@ import glob
 import json
 
 
-
 def getUncRates(elections_list, group='date'):
 
     all_locs = {} # Keys = unique locations
     for i in elections_list: # For each race
         if i['location'] not in all_locs:
             all_locs[i['location']] = {}
-
-    # if (group):
-    #     dg = 'group' # Use election groups instead of individual dates
-    # else:
-    #     dg = 'date'
 
     dg = group
 
@@ -38,32 +32,9 @@ def getType(elections_list, office_type):
     return filter(lambda x: x['office_type']==office_type, elections_list)
 
 
-# def getUncRatesForAll(elections_dict):
-
-#     return aggregateByLocation(elections_dict, 'unc_rates', (lambda x: x['unc_rate']))
-
-
-# def aggregateByLocation(elections_dict, k, f):
-#     """
-#     """
-
-#     locs = {}
-#     for date in elections_dict:
-#         if k in elections_dict[date]:
-#             for loc in elections_dict[date][k]:
-#                 if loc not in locs:
-#                     locs[loc] = {}
-#                 locs[loc][date] = f(elections_dict[date][k][loc])
-#         else:
-#             raise Exception("'k' must be either 'races' or 'unc_rates'.")
-
-#     return locs
-
-
 def combinePrimaryGeneral(elec_type):
     """Takes an election type (str) and returns whether it's a primary or general (str)."""
 
-    # print elec_type.lower()
     if 'primary' in elec_type.lower():
         if 'general' in elec_type.lower():
             raise Exception("'Primary' and 'General' can't both be in an election type.")
@@ -421,10 +392,6 @@ def calculateContested(races, date):
     """For each race, calculates the 'contested' field."""
     # Doesn't account for places where votefor is multiple but not specified
 
-    # FOR NOW: This is where elections_list is created
-    # should actually have a traversal function that calls two other functions:
-    #       calculateContested, addToElectionsSet
-
     elections_list = []
 
     for loc in races:
@@ -510,7 +477,7 @@ def convertDate(text):
     return '-'.join([y,m,d])
 
 
-## Do I really need this? Could I just include it in getUncontestedRaces?
+# Do I really need this? Doesn't add much functionality.
 def getWhere(to_filter, property_, boolean):
 
     return sorted(filter(lambda x: (to_filter[x][property_]==boolean), to_filter))
@@ -537,15 +504,16 @@ def getUncontestedRates(races, printr=False):
         for p in sorted(unc_rates):
             print p, ' '*(16-len(p)), str((unc_rates[p][unc_rate])*100)+'%'
                 # Prints the uncontested rates as percents, vertically aligned
-                # >>>>>>> Could use a slight adjustment in vertical alignment
+                # >> Could use a slight adjustment in vertical alignment
 
     return unc_rates
-
 
 
 if __name__ == '__main__':
 
     (elections_dict, elections_list) = readAllElections()
+
+    # The following code was used for specific CSV exports:
 
     # for t in ['Executive', 'Legislature', 'School Committee']:
     #     header = ['location'] + [e for e in sorted(elections_dict)]
@@ -563,21 +531,19 @@ if __name__ == '__main__':
     # data = prepForCSV(getUncRates(res, 'type_short'), 'location')
     # saveCSV('unc_rates_by_elec_type.csv', data, header)
 
+    # def mapRace(race):
 
-    def mapRace(race):
+    #     def mapRaceFunc(x):
 
-        # lambda x: (x, race[x]) if (x != 'candidates') else (len(race[x]['Valid']))
-        def mapRaceFunc(x):
+    #         if (x != 'candidates'):
+    #             return (x, race[x])
+    #         else:
+    #             return (x, len(race[x]['Valid']))
 
-            if (x != 'candidates'):
-                return (x, race[x])
-            else:
-                return (x, len(race[x]['Valid']))
+    #     return dict(map(mapRaceFunc, race))
 
-        return dict(map(mapRaceFunc, race))
-
-    data = map(mapRace, elections_list)
-    header = ['date', 'location', 'office', 'office_type', 'district', 'nonpartisan',
-        'candidates', 'votefor', 'contested']
-    # header = [contested, office, district, office_type, candidates, date, nonpartisan, votefor]
-    saveCSV('all_races.csv', data, header)
+    # data = map(mapRace, elections_list)
+    # header = ['date', 'location', 'office', 'office_type', 'district', 'nonpartisan',
+    #     'candidates', 'votefor', 'contested']
+    # # header = [contested, office, district, office_type, candidates, date, nonpartisan, votefor]
+    # saveCSV('all_races.csv', data, header)
