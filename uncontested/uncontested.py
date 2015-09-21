@@ -92,20 +92,18 @@ def compileCandidates(reader, date):
 
     Args:
         reader: A csv.DictReader with info about candidates.
+        date: The str date of the election (YYYY-MM-DD).
 
     Returns:
-        A dict with all the races and candidates.
-            Keys are locations (municipality names, state, or federal), 
-            values are dicts with keys being office names and values being
-            dicts with keys being district numbers and values being dicts with 
-            information regarding a specific race: list of candidates, how many you 
-            could vote for, whether or not the race was contested, and whether 
-            or not the race was nonpartisan.
+        A tuple containing:
+            A dict that is just like the input races except where
+                each race now has a boolean field 'contested'.
+            A list of dicts, where each dict represnts a race.
     """
 
     races = {}
-    for row in reader:
-        row = mapOffice(row)
+    for row_ in reader:
+        row = mapOffice(row_)
         loc = findLocation(row)
         o = row['office']
         d = row['dist']
@@ -116,7 +114,7 @@ def compileCandidates(reader, date):
         if d not in races[loc][o]: # if district is not already in office's list of districts
             races[loc][o][d] = {
                 'votefor': int(row['votefor']),
-                'nonpartisan': (row['PARTY']=='Non-Partisan Local Office'),
+                'nonpartisan': (row['PARTY'] == 'Non-Partisan Local Office'),
                 'candidates': { # 4 separate lists for the different 'DECLARATION' values
                     'Valid': [],
                     'Void': [],
@@ -199,10 +197,35 @@ def findLocation(d):
 
 
 def calculateContested(races, date):
-    """For each race, calculates the 'contested' field."""
-    # Doesn't account for places where votefor is multiple but not specified
+    """For each race, calculates the 'contested' field.
 
-    elections_list = []
+    Doesn't account for places where votefor is multiple but not specified.
+
+    This function is the result of a change in the trajectory of this program.
+    Originally, I had 'races' as the only export, but I later realized that
+    it made more sense to use a list that could easily be filtered and
+    aggregated in whatever way is desired. This function originally took
+    'races', went to each race and completed a field indicating whether or not
+    it's contested. I modified it to also take each race (including the answer
+    to isContested, plus the date, location, office, office type, and
+    district) and append it to a list of all races ('races_list').
+
+    If I were rewriting this program from scratch, this would definitely
+    be different, but for now it's not really worth refactoring this.
+
+    Args:
+        races: A dict where keys = locations, values = dicts of all the
+            districts for that location.
+        date: The str date of the election (YYYY-MM-DD).
+
+    Returns:
+        A tuple containing:
+            A dict that is just like the input races except where
+                each race now has a boolean field 'contested'.
+            A list of dicts, where each dict represnts a race.
+    """
+
+    races_list = []
     for loc in races:
         for office in races[loc]:
             for district in races[loc][office]:
@@ -216,8 +239,8 @@ def calculateContested(races, date):
                     'district': district
                 }
                 race_item = dict(d.items() + other_race_info.items())
-                elections_list.append(race_item)
-    return (races, elections_list)
+                races_list.append(race_item)
+    return (races, races_list)
 
 
 def isContested(d):
@@ -236,8 +259,19 @@ def isContested(d):
 
 
 def getOfficeType(office):
+    """Parses the name of an office to figure out its type.
 
-    if office in ['MAYOR', 'TOWN MODERATOR', 'GOVERNOR', 'PRESIDENT OF THE UNITED STATES']:
+    Types: Executive, Legislature, School Committee, other (None).
+
+    Args:
+        office: A str name of an office, as given in the raw data.
+
+    Returns:
+        A str representing the office type.
+    """
+
+    if office in ['MAYOR', 'TOWN MODERATOR', 'GOVERNOR',
+                  'PRESIDENT OF THE UNITED STATES']:
         return 'Executive'
     elif 'COUNCIL' in office:
         return 'Legislature'
@@ -270,21 +304,26 @@ def getDateFromName(file_name):
     return file_name.split('\\')[-1].split('_')[1]
 
 
-# Rename
 def getUncontestedRates(races, printr=False):
+
+    def getWhere(to_filter, property_, test):
+        """Returns a sorted list of items where a property tests True."""
+
+        # return sorted(filter(lambda x: (to_filter[x][property_]==test), to_filter))
+        return sorted(x for x in to_filter if (to_filter[x][property_] == test))
 
     unc_rates = {}
     for loc in sorted(races):
         tot = 0.0
         unc = 0.0
         for office in races[loc]:
-            tot += len(races[loc][office]) # How many total districts does the office have?
+            tot += len(races[loc][office])  # How many total districts does the office have?
             unc += len(getWhere(races[loc][office], 'contested', False))
                 # In how many districts were the races uncontested?
         unc_rates[loc] = {
             'tot_races': tot,
             'unc_races': unc,
-            'unc_rate': (unc/tot) # Pct of races for that location that were uncontested
+            'unc_rate': (unc/tot)  # Pct of races for that location that were uncontested
         }
     if (printr):
         print 'Percent of races that were uncontested:'
@@ -293,13 +332,6 @@ def getUncontestedRates(races, printr=False):
                 # Prints the uncontested rates as percents, vertically aligned
                 # >> Could use a slight adjustment in vertical alignment
     return unc_rates
-
-
-# Do I really need this? Doesn't add much functionality.
-def getWhere(to_filter, property_, test):
-
-    # return sorted(filter(lambda x: (to_filter[x][property_]==test), to_filter))
-    return sorted(x for x in to_filter if (to_filter[x][property_] == test))
 
 
 ### PRE-EXPORT UTILITIES
@@ -355,38 +387,41 @@ def addProp(list_of_dicts, current_prop, new_prop_name, new_prop_f):
 
     return map(propMap, list_of_dicts)
 
+# To-do: Rename, improve readability:
+def getUncRates(races_list, group='date'):
 
-def getUncRates(elections_list, group='date'):
-
-    all_locs = {} # Keys = unique locations
-    for i in elections_list: # For each race
+    all_locs = {}  # Keys = unique locations
+    for i in races_list:  # For each race
         if i['location'] not in all_locs:
             all_locs[i['location']] = {}
-
     dg = group
-
-    for j in all_locs: # For each location
-        loc_list = filter(lambda x: x['location']==j, elections_list) # Races for that loc
-        loc_dict = {} # Keys = dates, values = races
+    for j in all_locs:  # For each location
+        # loc_list = filter(lambda x: x['location']==j, races_list)
+        loc_list = [x for x in races_list if (x['location']==j)]
+        loc_dict = {}  # Keys = dates, values = races
         for k in loc_list:
             if k[dg] not in loc_dict:
                 loc_dict[k[dg]] = []
             loc_dict[k[dg]].append(k)
-        for date in loc_dict: # For each date or date group
+        for date in loc_dict:  # For each date or date group
             unc = float(len(filter(lambda x: x['contested']==False, loc_dict[date])))
             tot = float(len(loc_dict[date]))
             all_locs[j][date] = unc/tot
-
     return all_locs
 
 
-def getType(elections_list, office_type):
+def getType(races_list, office_type):
 
-    return filter(lambda x: x['office_type']==office_type, elections_list)
+    # return filter(lambda x: x['office_type'] == office_type, races_list)
+    return [x for x in races_list if (x['office_type'] == office_type)]
 
 
-def combinePrimaryGeneral(elec_type):
-    """Takes an election type (str) and returns whether it's a primary or general (str)."""
+def isPrimaryOrGeneral(elec_type):
+    """Takes an election type (str) and returns whether it's a primary or general (str).
+
+    Raises:
+        Exception if 'Primary' and 'General' are both in elec_type.
+    """
 
     if 'primary' in elec_type.lower():
         if 'general' in elec_type.lower():
@@ -396,12 +431,11 @@ def combinePrimaryGeneral(elec_type):
     elif 'general' in elec_type.lower():
         return 'General'
     else:
-        print 'Type "'+elec_type+'" unknown.'
+        print ('Type "' + elec_type + '" unknown.')
         return 'Unknown'
 
 
-def combineYear(elec_year):
-
+def getYearFromDate(elec_year):
     # Could confirm that it's actually a year using regex, but this will work if used properly
 
     return elec_year[0:4]
@@ -527,13 +561,13 @@ if __name__ == '__main__':
     #     saveCSV('unc_rates_'+t[0:3].lower()+'.csv', data, header)
     
     # header = ['location', '2006', '2008', '2010', '2012', '2014']
-    # res = addProp(elections_list, 'date', 'year', combineYear)
+    # res = addProp(elections_list, 'date', 'year', getYearFromDate)
     # data = prepForCSV(getUncRates(res, 'year'), 'location')
     # saveCSV('unc_rates_by_year.csv', data, header)
 
     # header = ['location', 'Primary', 'General']
     # temp = addProp(elections_list, 'date', 'type_long', addPropFromJSON('list_of_elections.json'))
-    # res = addProp(temp, 'type_long', 'type_short', combinePrimaryGeneral)
+    # res = addProp(temp, 'type_long', 'type_short', isPrimaryOrGeneral)
     # data = prepForCSV(getUncRates(res, 'type_short'), 'location')
     # saveCSV('unc_rates_by_elec_type.csv', data, header)
 
