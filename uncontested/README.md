@@ -15,4 +15,4 @@ There are several challenges this program addresses:
 * The candidate data contains information for everyone who declared a candidacy. Most people ended up being on the ballot, but a small number had a status of "Void," "Withdrew," or "Under Review." The candidates in these categories need to be ignored, while still being included in JSON exports in case anyone wants to see information about them.
 
 
-*Note: This code is currently undergoing reorganization, and more extensive comments are being added. Additionally, the source data files needed to run this program will be added here once they have confidential information removed from them.*
+*Note: There are a few functions that are being cleaned up and will have more comments added. Additionally, the source data files needed to run this program will be added here once they have confidential information removed from them.*
