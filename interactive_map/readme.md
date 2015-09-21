@@ -1,4 +1,8 @@
-The intention of this is for people who don't know much about programming to be able to create an interactive map of Rhode Island municipalities based on a given dataset. In order to minimize development time (and also allow for easy customization), this does not involve creating a GUI.
+[View this map in action](http://www.gregjd.com/sandbox/interactive_map/interactive_map.html)
+
+The intention of this is for people who don't know much about programming to be able to create an interactive map of Rhode Island municipalities based on a given dataset. In order to minimize development time (and also allow for easy customization), this does not involve creating a GUI. Note that this map offers a constrained set of display choices. This is deliberate, as a map that needs to be very different from this is probably better off being coded from scratch. This is meant to be especially useful for the kind of maps that we often need to make at ProvPlan, not just any map.
+
+The code currently posted is for a specific project and dataset. A newer version will soon be posted that can accept a configuration object and any dataset, and display either Rhode Island municipalities or Providence neighborhoods.
 
 
 
