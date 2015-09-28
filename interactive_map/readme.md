@@ -10,11 +10,11 @@ The code currently posted is for a specific project and dataset. A newer version
 
 You'll need to make sure your data is in JSON format, as an object whose keys are municipality names (all caps) and values are objects whose keys are property names and values are property values. Here's an example:
 
-[example]
+![Screenshot of JSON example](images/example_json.png)
 
 Getting data from Excel or a CSV into this format is easy. You could certainly run a script that will do this automatically, but you can also do it through a website called [Mr. Data Converter](https://shancarter.github.io/mr-data-converter/). In the top box, paste your data. (It can take data straight from Excel, or as comma-separated or tab-separated values.) In the menu above the bottom box, select _"JSON - Dictionary."_ Your reformatted data is below!
 
-[include screenshot]
+![Screenshot of Mr. Data Converter](images/mr_data_converter.png)
 
 If the data you started with was already in the right format, then you don't need to worry about converting it.
 
