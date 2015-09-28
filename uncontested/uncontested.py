@@ -66,7 +66,6 @@ def readCandidatesFile(file_name, makeJSON=False):
     f = open(file_name, 'r')
     date = convertDate(getDateFromName(file_name))
     try:
-        # races = compileCandidates(csv.DictReader(f), date)
         (races, races_list) = compileCandidates(csv.DictReader(f), date)
     except KeyError:
         print ("\n" + file_name + "\ndoes not have all the required fields: " +
@@ -80,7 +79,6 @@ def readCandidatesFile(file_name, makeJSON=False):
         return ({
             'races': races,
             'date': date,
-            # 'date': convertDate(getDateFromName(file_name)),
             'unc_rates': getUncontestedRates(races)
         }, races_list)
     finally:
@@ -352,14 +350,10 @@ def addPropFromJSON(file_name):
     def jsonMatch(lookup):
 
         try:
-            # match = js[lookup].encode('ascii')
             return js[lookup].encode('ascii')
         except KeyError:
             print lookup, 'not found in JSON file'
-            # match = None
             return None
-
-        # return match
 
     return jsonMatch
 
@@ -436,6 +430,7 @@ def isPrimaryOrGeneral(elec_type):
 
 
 def getYearFromDate(elec_year):
+    """"Extracts the year from a date in YYYY-MM-DD format."""
     # Could confirm that it's actually a year using regex, but this will work if used properly
 
     return elec_year[0:4]
@@ -539,11 +534,9 @@ def saveJSON(new_file_name, data):
     """
 
     print '\nSaving file:', new_file_name, '...'
-    
     nf = open(new_file_name, 'w')
     json.dump(data, nf, indent=4, sort_keys=True)
     nf.close()
-
     print 'Saved file:', new_file_name
     
     return
