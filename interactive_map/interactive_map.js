@@ -35,6 +35,18 @@ rimap = function () {
     // Loads the geodata and draws the map
     function drawMap(config, dataset) {
 
+        // Set geojson file (and name of field with polygon names)
+        if (config.region === "Rhode Island") {
+            var geo_file = "ri_muni.geojson";
+            var geo_name = "MUNI";
+        } else if (config.region === "Providence") {
+            var geo_file = "prov_nhood.geojson";
+            var geo_name = "LNAME";
+        } else {
+            throw Error("In rimap_config.json, 'region' must be \
+                either 'Providence' or 'Rhode Island'.");
+        }
+
         // Define color scale
         var color = d3.scale.threshold()
                             .domain(config.cutoffs)
@@ -42,17 +54,21 @@ rimap = function () {
 
         // var legend_items = map(color.domain(), toPct);
 
-        // Define what goes in the box that appears when you hover over a municipality
+        // Define what goes in the box that appears when you hover over a location
         var tip = d3.tip()
                     .attr("class", "d3-tip")
                     .offset([-10, 0])
                     .html(function (d) {
-                        var calc = d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"];
-                        var num = toPct(calc, 2);
-                        var num_color = ((calc > 1) ? "red" : "green");
-                        var city = d.properties.MUNI;
-                        return "<strong>" + city + "</strong><br>Percent of youth registered: <span style='color:" 
-                            + num_color + "'>" + num + "</span>";
+                        var calc = d.properties[config.value] / (d.properties[config.norm] || 1);
+                        var num = config.percent ? toPct(calc, 1) : calc;
+                        if (config.value_exceed && calc > config.value_exceed) {
+                            var num_color = config.color_exceed;
+                        } else {
+                            var num_color = config.color_default;
+                        }
+                        var city = d.properties[geo_name];
+                        return "<strong>" + city + "</strong><br>" + config.text +
+                            ": <span style='color:" + num_color + "'>" + num + "</span>";
                     });
 
         // Create SVG
@@ -63,28 +79,15 @@ rimap = function () {
 
         svg.call(tip);
 
-        // Set geojson file (and name of field with polygon names)
-        if (config.region === "Rhode Island") {
-            var geo_file = "ri_muni.geojson";
-            var geo_name = "MUNI_CAPS";
-        } else if (config.region === "Providence") {
-            var geo_file = "prov_nhood.geojson";
-            var geo_name = "LNAME";
-        } else {
-            throw Error("In rimap_config.json, 'region' must be \
-                either 'Providence' or 'Rhode Island'.");
-        }
-
-        // Open the file with municipality shapes
+        // Open the file with location (municipality/neighborhood) shapes
         d3.json(geo_file, function (geo_data) {
 
-            // Attach our data as properties of the municipality shapes
+            // Attach our data as properties of the location shapes
             for (var i = 0; i < geo_data.features.length; i++) {
-
-                var muni_name = geo_data.features[i].properties[geo_name];
-
-                for (p in dataset[muni_name]) {
-                    geo_data.features[i].properties[p] = dataset[muni_name][p];
+                var loc_name = geo_data.features[i].properties[geo_name];
+                var loc_data = dataset[loc_name] || dataset[loc_name.toUpperCase()];
+                for (p in loc_data) {
+                    geo_data.features[i].properties[p] = loc_data[p];
                 }
             }
             
@@ -95,7 +98,7 @@ rimap = function () {
                 .append("path")
                 .attr("d", path)
                 .style("fill", function (d) {
-                    var val = (d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"]);
+                    var val = d.properties[config.value] / (d.properties[config.norm] || 1);
                     return color(val);
                 })
                 .style("stroke", "white")
@@ -133,8 +136,6 @@ rimap = function () {
     }
 
     d3.json("rimap_config.json", function (config) {
-
-        // Read in the data and draw the map
         d3.json(config.file, function (dataset) {
             drawMap(config, dataset);
         });
