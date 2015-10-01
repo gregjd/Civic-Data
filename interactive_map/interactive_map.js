@@ -16,7 +16,7 @@ rimap = function () {
     function toPct(value, decimal_places) {
 
         if (isNaN(value) || isNaN(decimal_places)) {
-            throw "Parameters for toPct() must be numbers.";
+            throw Error("Parameters for toPct() must be numbers.");
         } else {
             return (value*100).toFixed(decimal_places) + "%";
         }   
