@@ -67,13 +67,25 @@ rimap = function () {
                             .domain(config.cutoffs)
                             .range(config.colors);
 
+        // Set geojson file (and name of field with polygon names)
+        if (config.region === "Rhode Island") {
+            var geo_file = "ri_muni.geojson";
+            var geo_name = "MUNI_CAPS";
+        } else if (config.region === "Providence") {
+            var geo_file = "prov_nhood.geojson";
+            var geo_name = "LNAME";
+        } else {
+            throw Error("In rimap_config.json, 'region' must be \
+                either 'Providence' or 'Rhode Island'.");
+        }
+
         // Open the file with municipality shapes
-        d3.json("ri_muni.geojson", function (geo_data) {
+        d3.json(geo_file, function (geo_data) {
 
             // Attach our data as properties of the municipality shapes
             for (var i = 0; i < geo_data.features.length; i++) {
 
-                var muni_name = geo_data.features[i].properties.MUNI_CAPS;
+                var muni_name = geo_data.features[i].properties[geo_name];
 
                 for (p in dataset[muni_name]) {
                     geo_data.features[i].properties[p] = dataset[muni_name][p];
@@ -82,7 +94,7 @@ rimap = function () {
             
             // Draw the map    
             svg.selectAll("path")
-                .data(geo_data.features, function (d) { return d.properties.MUNI_CAPS; })
+                .data(geo_data.features, function (d) { return d.properties[geo_name]; })
                 .enter()
                 .append("path")
                 .attr("d", path)
