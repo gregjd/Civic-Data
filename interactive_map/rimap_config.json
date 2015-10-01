@@ -2,5 +2,6 @@
     "file": "pop_and_reg_voters.json",
     "cutoffs": [0.6, 0.8, 1],
     "colors": ["#3366CC", "#0099CC", "#33CCCC", "#FF6600"],
-    "region": "Rhode Island"
+    "region": "Rhode Island",
+    "size": 900
 }

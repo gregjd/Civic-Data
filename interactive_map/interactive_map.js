@@ -1,9 +1,5 @@
 rimap = function () {
 
-    // Define the SVG's size
-    var w = 960;
-    var h = 900;
-
     // Set up projection
     var projection = d3.geo.mercator()
                             .center([-71.4121134, 41.8148182]) // centered on Providence
@@ -36,29 +32,6 @@ rimap = function () {
         return new_array;
     }
 
-    // var legend_items = map(color.domain(), toPct);
-
-    // Define what goes in the box that appears when you hover over a municipality
-    var tip = d3.tip()
-                .attr("class", "d3-tip")
-                .offset([-10, 0])
-                .html(function (d) {
-                    var calc = d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"];
-                    var num = toPct(calc, 2);
-                    var num_color = ((calc > 1) ? "red" : "green");
-                    var city = d.properties.MUNI;
-                    return "<strong>" + city + "</strong><br>Percent of youth registered: <span style='color:" 
-                        + num_color + "'>" + num + "</span>";
-                });
-
-    // Create SVG
-    var svg = d3.select("body")
-                .append("svg")
-                .attr("width", w)
-                .attr("height", h);
-
-    svg.call(tip);
-
     // Loads the geodata and draws the map
     function drawMap(config, dataset) {
 
@@ -66,6 +39,29 @@ rimap = function () {
         var color = d3.scale.threshold()
                             .domain(config.cutoffs)
                             .range(config.colors);
+
+        // var legend_items = map(color.domain(), toPct);
+
+        // Define what goes in the box that appears when you hover over a municipality
+        var tip = d3.tip()
+                    .attr("class", "d3-tip")
+                    .offset([-10, 0])
+                    .html(function (d) {
+                        var calc = d.properties["Reg 18-24"] / d.properties["Pop Total 18-24"];
+                        var num = toPct(calc, 2);
+                        var num_color = ((calc > 1) ? "red" : "green");
+                        var city = d.properties.MUNI;
+                        return "<strong>" + city + "</strong><br>Percent of youth registered: <span style='color:" 
+                            + num_color + "'>" + num + "</span>";
+                    });
+
+        // Create SVG
+        var svg = d3.select("body")
+                    .append("svg")
+                    .attr("width", config.size)
+                    .attr("height", config.size);
+
+        svg.call(tip);
 
         // Set geojson file (and name of field with polygon names)
         if (config.region === "Rhode Island") {
