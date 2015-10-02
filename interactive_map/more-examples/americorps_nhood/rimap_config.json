@@ -1,0 +1,14 @@
+{
+    "file": "americorps_nhood.json",
+    "value": "Number",
+    "norm": "KPop",
+    "cutoffs": [0.4, 0.8, 1,2, 1.6],
+    "colors": ["#edf8fb", "#b2e2e2", "#66c2a4", "#2ca25f", "#006d2c"],
+    "text": "AmeriCorps volunteers per thousand residents",
+    "percent": false,
+    "color_default": "gray",
+    "color_exceed": null,
+    "value_exceed": null,
+    "region": "Providence",
+    "size": 900
+}
