@@ -1,12 +1,8 @@
 rimap = function () {
 
     // Set up projection
-    var projection = d3.geo.mercator()
-                            .center([-71.4121134, 41.8148182]) // centered on Providence
-                            // .center([-71.5064508, 41.5827282,]) // centered on RI
-                            .scale(40000);
-    var path = d3.geo.path()
-                        .projection(projection);
+    var projection = d3.geo.mercator();
+    var path = d3.geo.path().projection(projection);
 
     // Converts a number to a percent, with a certain number of decimal places
     function toPct(value, decimal_places) {
@@ -20,7 +16,13 @@ rimap = function () {
 
     // Takes an array and produces an array with intervals between the values in the original array
     // (Intended to produce legend text using color.domain())
-    function getIntervals(array) {
+    function getIntervals(array, percent) {
+
+        if (percent) {
+            var array = array.map(function (e) {
+                return toPct(e, 0);
+            })
+        }
 
         var new_array = [];
         new_array.push("Less than " + array[0]);
@@ -39,9 +41,11 @@ rimap = function () {
         if (config.region === "Rhode Island") {
             var geo_file = "ri_muni.geojson";
             var geo_name = "MUNI";
+            projection.center([-71.4121134, 41.8148182]).scale(40000);
         } else if (config.region === "Providence") {
             var geo_file = "prov_nhood.geojson";
             var geo_name = "LNAME";
+            projection.center([-71.412092, 41.8403796]).scale(350000);
         } else {
             throw Error("In rimap_config.json, 'region' must be \
                 either 'Providence' or 'Rhode Island'.");
@@ -51,6 +55,8 @@ rimap = function () {
         var color = d3.scale.threshold()
                             .domain(config.cutoffs)
                             .range(config.colors);
+        console.log(color.domain());
+        console.log(getIntervals(color.domain(), config.percent));
 
         // var legend_items = map(color.domain(), toPct);
 
@@ -60,7 +66,7 @@ rimap = function () {
                     .offset([-10, 0])
                     .html(function (d) {
                         var calc = d.properties[config.value] / (d.properties[config.norm] || 1);
-                        var num = config.percent ? toPct(calc, 1) : calc;
+                        var num = config.percent ? toPct(calc, 1) : calc.toFixed(2);
                         if (config.value_exceed && calc > config.value_exceed) {
                             var num_color = config.color_exceed;
                         } else {
@@ -78,6 +84,28 @@ rimap = function () {
                     .attr("height", config.size);
 
         svg.call(tip);
+
+        // Create legend
+        // var legend = svg.selectAll("g.legend")
+        //                 .data(getIntervals(color.domain()))
+        //                 .enter()
+        //                 .append("g")
+        //                 .attr("class", "legend");
+
+        // var ls_w = 20, ls_h = 20;
+
+        // legend.append("rect")
+        //         .attr("x", 20)
+        //         .attr("y", function (d, i) { return height - (i*ls_h) - 2*ls_h;})
+        //         .attr("width", ls_w)
+        //         .attr("height", ls_h)
+        //         .style("fill", function (d, i) { return color.range()[i]; })
+        //         .style("opacity", 0.8);
+
+        // legend.append("text")
+        //         .attr("x", 50)
+        //         .attr("y", function(d, i){ return height - (i*ls_h) - ls_h - 4;})
+        //         .text(function(d, i){ return legend_labels[i]; });
 
         // Open the file with location (municipality/neighborhood) shapes
         d3.json(geo_file, function (geo_data) {
