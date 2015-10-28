@@ -80,15 +80,9 @@ rimap = function () {
         // Create SVG
         var svg = d3.select("body")
                     .append("svg")
-                    // .attr("viewBox", ("0 0 " + 700 + "px " + 700 + "px"))
-                    // .attr("viewBox", ("0 0 " + config.size + "px " + config.size + "px"))
                     .attr("width", config.size)
                     .attr("height", config.size)
-                    // .attr("width", 700)
-                    // .attr("height", 700);
-                    // .attr("width", 500)
-                    // .attr("height", 500);
-                    .attr("viewBox", "0 0 1800 1800");
+                    .attr("viewBox", "0 0 900 900");
 
         svg.call(tip);
 
