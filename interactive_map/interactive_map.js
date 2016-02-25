@@ -55,8 +55,6 @@ rimap = function () {
         var color = d3.scale.threshold()
                             .domain(config.cutoffs)
                             .range(config.colors);
-        console.log(color.domain());
-        console.log(getIntervals(color.domain(), config.percent));
 
         // Define what goes in the box that appears when you hover over a location
         var tip = d3.tip()
