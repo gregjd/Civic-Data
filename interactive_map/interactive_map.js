@@ -15,7 +15,7 @@ rimap = function () {
     }
 
     // Takes an array and produces an array with intervals between the values in the original array
-    // (Intended to produce legend text using color.domain())
+    // (Intended to produce legend text using color.domain(), if a legend is added to the map)
     function getIntervals(array, percent) {
 
         if (percent) {
@@ -58,8 +58,6 @@ rimap = function () {
         console.log(color.domain());
         console.log(getIntervals(color.domain(), config.percent));
 
-        // var legend_items = map(color.domain(), toPct);
-
         // Define what goes in the box that appears when you hover over a location
         var tip = d3.tip()
                     .attr("class", "d3-tip")
@@ -85,28 +83,6 @@ rimap = function () {
                     .attr("viewBox", "0 0 900 900");
 
         svg.call(tip);
-
-        // Create legend
-        // var legend = svg.selectAll("g.legend")
-        //                 .data(getIntervals(color.domain()))
-        //                 .enter()
-        //                 .append("g")
-        //                 .attr("class", "legend");
-
-        // var ls_w = 20, ls_h = 20;
-
-        // legend.append("rect")
-        //         .attr("x", 20)
-        //         .attr("y", function (d, i) { return height - (i*ls_h) - 2*ls_h;})
-        //         .attr("width", ls_w)
-        //         .attr("height", ls_h)
-        //         .style("fill", function (d, i) { return color.range()[i]; })
-        //         .style("opacity", 0.8);
-
-        // legend.append("text")
-        //         .attr("x", 50)
-        //         .attr("y", function(d, i){ return height - (i*ls_h) - ls_h - 4;})
-        //         .text(function(d, i){ return legend_labels[i]; });
 
         // Open the file with location (municipality/neighborhood) shapes
         d3.json(geo_file, function (geo_data) {
@@ -143,24 +119,6 @@ rimap = function () {
                     d3.select(this)
                         .style("stroke", "white");
                 });
-            
-            // Create box for drop-down menu and legend
-            var box = svg.append("div");
-            // var box = svg.append("foreignObject").append("div");
-
-            // Create drop-down menu
-            // NOTE: These are currently sample items
-            var menu = box.append("select")
-            menu.append("option")
-                .attr("value", "v1")
-                .text("Value 1, Value 1");
-            menu.append("option")
-                .attr("value", "v2")
-                .text("Value 2, Value 2");
-
-            // Create legend
-            var legend = box.append("div");
-            // TODO: add legend items
         });
     }
 
